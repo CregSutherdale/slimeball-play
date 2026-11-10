@@ -1,1 +1,244 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SLIMEBALL</title><style>body{margin:0;background:#1f5d7a;color:#f7efd2;font:700 22px system-ui;display:grid;place-items:center;height:100vh;text-align:center}</style></head><body><div>SLIMEBALL<br><small>Coming soon. A game by MC DUDES.</small></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SLIMEBALL">
+<meta name="theme-color" content="#f5f0e0">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="SLIMEBALL by MC DUDES. A squishy slime climbs a tower of traps.">
+<title>SLIMEBALL</title>
+<style>
+html, body {
+	margin: 0; padding: 0; border: 0;
+	width: 100%; height: 100%;
+	background: #f5f0e0;
+	overflow: hidden;
+	overscroll-behavior: none;
+	touch-action: none;
+	-webkit-user-select: none; user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-text-size-adjust: none;
+}
+body { position: fixed; inset: 0; }
+#canvas {
+	display: block; position: absolute; left: 0; top: 0;
+	width: 100%; height: 100%;
+	touch-action: none; outline: none;
+}
+#canvas:focus { outline: none; }
+/* the safe-area probe: the game reads these insets (window.sbSafeInsets) */
+#sb-safe {
+	position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden; pointer-events: none;
+	padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+	padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.sb-card {
+	position: fixed; inset: 0;
+	display: flex; flex-direction: column; align-items: center; justify-content: center;
+	background: #f5f0e0;
+	color: #17131c;
+	font-family: "Arial Rounded MT Bold", "Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+	font-weight: 900; text-align: center;
+}
+/* paper tooth: two soft dot grids, no image to load */
+.sb-card::before {
+	content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.35;
+	background-image: radial-gradient(rgba(60, 50, 30, 0.10) 1px, transparent 1.3px),
+		radial-gradient(rgba(60, 50, 30, 0.07) 1px, transparent 1.4px);
+	background-size: 7px 7px, 11px 11px; background-position: 0 0, 3px 5px;
+}
+#sb-load { z-index: 10; }
+.sb-word {
+	position: relative;
+	font-size: min(17vw, 20vh); line-height: 1; letter-spacing: 0.02em;
+	color: #66ff80;
+	-webkit-text-stroke: max(3px, 0.9vh) #17131c; paint-order: stroke fill;
+	text-shadow: 0.06em 0.07em 0 #17131c;
+	transform: rotate(-3deg);
+	animation: sb-boil 0.5s steps(1) infinite;
+}
+@keyframes sb-boil {
+	0% { transform: rotate(-3deg) translate(0, 0); }
+	33% { transform: rotate(-2.6deg) translate(1px, -1px); }
+	66% { transform: rotate(-3.3deg) translate(-1px, 1px); }
+}
+.sb-bar {
+	position: relative; margin-top: 7vh;
+	width: min(62vw, 560px); height: max(18px, 3.6vh);
+	border: max(3px, 0.6vh) solid #17131c; border-radius: 999px;
+	background: #fffaf0; overflow: hidden;
+	transform: rotate(-0.6deg);
+	box-shadow: 0.25em 0.3em 0 #17131c;
+}
+.sb-fill {
+	position: absolute; left: 0; top: 0; bottom: 0; width: 4%;
+	background: #66ff80; border-right: max(3px, 0.6vh) solid #17131c;
+	transition: width 0.15s linear;
+}
+.sb-small {
+	position: relative; margin-top: 3vh;
+	font-size: max(13px, 2.6vh); letter-spacing: 0.18em; color: #17131c;
+}
+#sb-pct { opacity: 0.7; }
+.sb-credit {
+	position: absolute; bottom: max(3vh, env(safe-area-inset-bottom, 0px));
+	font-size: max(12px, 2.2vh); letter-spacing: 0.3em;
+}
+#sb-note { display: none; position: relative; margin: 4vh 8vw 0; font-size: max(13px, 2.6vh); line-height: 1.4; letter-spacing: 0.05em; }
+#sb-turn { z-index: 20; display: none; }
+.sb-phone {
+	position: relative; width: 16vw; height: 28vw; max-width: 90px; max-height: 158px;
+	border: 5px solid #17131c; border-radius: 16px; background: #fffaf0;
+	box-shadow: 6px 7px 0 #17131c;
+	animation: sb-turn 2.2s ease-in-out infinite;
+}
+.sb-phone::after {
+	content: ""; position: absolute; left: 30%; right: 30%; top: 46%; bottom: 46%;
+	border-radius: 999px; background: #66ff80; border: 3px solid #17131c;
+}
+@keyframes sb-turn {
+	0%, 25% { transform: rotate(0deg); }
+	55%, 100% { transform: rotate(-90deg); }
+}
+.sb-turn-text { position: relative; margin-top: 8vh; font-size: 7vw; letter-spacing: 0.08em; }
+@media (orientation: portrait) and (pointer: coarse) {
+	#sb-turn { display: flex; }
+}
+</style>
+<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+</head>
+<body>
+<canvas id="canvas" tabindex="0"></canvas>
+<div id="sb-safe"></div>
+<noscript><div class="sb-card">SLIMEBALL needs JavaScript turned on.</div></noscript>
+
+<div id="sb-load" class="sb-card">
+	<div class="sb-word">SLIMEBALL</div>
+	<div class="sb-bar"><div class="sb-fill" id="sb-fill"></div></div>
+	<div class="sb-small"><span id="sb-what">LOADING</span> <span id="sb-pct"></span></div>
+	<div id="sb-note"></div>
+	<div class="sb-credit">MC DUDES</div>
+</div>
+
+<div id="sb-turn" class="sb-card">
+	<div class="sb-phone"></div>
+	<div class="sb-turn-text">TURN YOUR PHONE SIDEWAYS</div>
+</div>
+
+<script>
+// Phones: cap the backing store at 2 device pixels per CSS pixel. A 3x phone would otherwise render
+// 2556 x 1179 (more than the 1920 x 1080 the game is drawn for) and pay for it in heat and memory.
+(function () {
+	var real = window.devicePixelRatio || 1;
+	var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+	if (coarse && real > 2) {
+		try { Object.defineProperty(window, 'devicePixelRatio', { get: function () { return 2; }, configurable: true }); } catch (e) {}
+	}
+	window.sbRealDpr = real;
+}());
+
+// Read by the game (scripts/mobile/web_page.gd): safe-area insets in canvas pixels "l,t,r,b".
+window.sbSafeInsets = function () {
+	var s = getComputedStyle(document.getElementById('sb-safe'));
+	var d = window.devicePixelRatio || 1;
+	return [s.paddingLeft, s.paddingTop, s.paddingRight, s.paddingBottom].map(function (v) {
+		return Math.round((parseFloat(v) || 0) * d);
+	}).join(',');
+};
+window.sbPortrait = function () {
+	return window.innerHeight > window.innerWidth;
+};
+window.sbStats = { t0: performance.now(), loaded: -1, started: -1 };
+
+// Android: the first tap goes full screen and locks landscape (iPhone Safari has no full screen for a
+// page; Add to Home Screen gives the same). Never on a desktop browser.
+(function () {
+	var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+	if (!coarse) return;
+	function go() {
+		var el = document.documentElement;
+		var req = el.requestFullscreen || el.webkitRequestFullscreen;
+		if (req && !document.fullscreenElement && !document.webkitFullscreenElement) {
+			try {
+				var p = req.call(el, { navigationUI: 'hide' });
+				if (p && p.then) {
+					p.then(function () {
+						if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(function () {}); }
+					}).catch(function () {});
+				}
+			} catch (e) {}
+		}
+	}
+	window.addEventListener('touchend', go, { passive: true });
+}());
+</script>
+<script src="index.js"></script>
+<script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":11758620,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_THREADS_ENABLED = false;
+const engine = new Engine(GODOT_CONFIG);
+
+(function () {
+	var load = document.getElementById('sb-load');
+	var fill = document.getElementById('sb-fill');
+	var pct = document.getElementById('sb-pct');
+	var what = document.getElementById('sb-what');
+	var note = document.getElementById('sb-note');
+
+	function fail(text) {
+		console.error(text);
+		what.textContent = 'COULD NOT START';
+		pct.textContent = '';
+		note.style.display = 'block';
+		note.textContent = text;
+	}
+
+	var missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
+	if (missing.length !== 0) {
+		fail('This browser cannot run the game (' + missing.join(', ') + '). Try the newest Safari, Chrome or Firefox.');
+		return;
+	}
+	engine.startGame({
+		// QUIT in the game ends the page's game: show a card instead of a frozen picture; a tap starts again
+		'onExit': function () {
+			var card = document.createElement('div');
+			card.className = 'sb-card';
+			card.style.zIndex = '15';
+			card.innerHTML = '<div class="sb-word">SLIMEBALL</div><div class="sb-small" style="margin-top:7vh">THANKS FOR PLAYING</div>'
+				+ '<div class="sb-small" style="margin-top:3vh;opacity:0.7">TAP TO PLAY AGAIN</div><div class="sb-credit">MC DUDES</div>';
+			card.addEventListener('click', function () { window.location.reload(); });
+			card.addEventListener('touchend', function () { window.location.reload(); });
+			document.body.appendChild(card);
+		},
+		'onProgress': function (current, total) {
+			if (current > 0 && total > 0) {
+				var p = Math.max(4, Math.min(100, Math.floor(current * 100 / total)));
+				fill.style.width = p + '%';
+				pct.textContent = p + '%';
+				if (current >= total) {
+					what.textContent = 'STARTING';
+					pct.textContent = '';
+					window.sbStats.loaded = performance.now() - window.sbStats.t0;
+				}
+			}
+		},
+	}).then(function () {
+		window.sbStats.started = performance.now() - window.sbStats.t0;
+		load.remove();
+		var c = document.getElementById('canvas');
+		if (c) { c.focus(); }
+	}, function (err) {
+		fail((err && err.message) ? err.message : String(err));
+	});
+}());
+</script>
+</body>
+</html>
+
